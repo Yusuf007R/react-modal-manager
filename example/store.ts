@@ -1,4 +1,5 @@
-import { createStore } from '../.';
-const store = new createStore(0);
+import CreateStore from '../src/state';
+
+const store = CreateStore(0);
 
 export default store;

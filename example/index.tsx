@@ -1,10 +1,16 @@
 import 'react-app-polyfill/ie11';
-import * as React from 'react';
-import * as ReactDOM from 'react-dom';
+
+import useStore from '../src/state/react';
+
+import { createRoot } from 'react-dom/client';
+
 import store from './store';
 
 const App = () => {
-  return <div>helloWorld</div>;
-};
+  const [state, setState] = useStore(store);
 
-ReactDOM.render(<App />, document.getElementById('root'));
+  return <div onClick={() => setState((state) => state + 1)}>{state}</div>;
+};
+const container = document.getElementById('root');
+const root = createRoot(container!);
+root.render(<App />);
