@@ -1,2 +1,3 @@
-export { default } from './state';
-export * from './state/react';
+export { default as ModalProvider } from './modal-provider';
+
+export { default } from './modal-manager';

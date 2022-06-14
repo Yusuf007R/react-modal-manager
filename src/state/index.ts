@@ -8,7 +8,7 @@ export type storeType<T> = {
   subscribe: (listener: stateListener) => () => void;
 };
 
-const CreateStore = <T>(initialState: T): storeType<T> => {
+const createStore = <T>(initialState: T): storeType<T> => {
   let state: T = initialState;
   const listeners: Set<stateListener> = new Set();
 
@@ -20,7 +20,7 @@ const CreateStore = <T>(initialState: T): storeType<T> => {
   };
 
   const setState = (arg: setStateArg<T>) => {
-    state = arg(state);
+    state = { ...arg(state) };
     listeners.forEach((callback) => callback());
   };
 
@@ -29,4 +29,4 @@ const CreateStore = <T>(initialState: T): storeType<T> => {
   return { setState, getState, subscribe };
 };
 
-export default CreateStore;
+export default createStore;

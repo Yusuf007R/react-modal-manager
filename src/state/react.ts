@@ -3,5 +3,6 @@ import { storeType } from '.';
 
 export default function useStore<T>(store: storeType<T>) {
   const state = useSyncExternalStore(store.subscribe, store.getState);
-  return [state, store.setState, store] as const;
+
+  return [state, store.setState] as const;
 }
