@@ -2,38 +2,37 @@ import ModalManager from '../src';
 import Modal from 'react-modal';
 import { useModal } from '../src/modal-provider';
 
-const ModalComponent1 = ({ ModalProps }: { ModalProps: 'test1' }) => {
+const ModalComponent1 = ({ title }: { title: string }) => {
   const options = useModal();
   return (
     <Modal ariaHideApp={false} isOpen={true}>
+      {title}
       <button onClick={options.hide}>closeModal</button>
     </Modal>
   );
 };
 
-const ModalComponent2 = ({ ModalProps2 }: { ModalProps2: 'test2' }) => {
+const ModalComponent2 = ({ counter }: { counter: number }) => {
   const options = useModal();
   return (
     <Modal ariaHideApp={false} isOpen={true}>
+      {counter}
       <button onClick={options.hide}>closeModal</button>
     </Modal>
   );
 };
 
-const modalManager = new ModalManager({
-  Modal1: { component: ModalComponent1 },
-  Modal2: { component: ModalComponent2 },
-});
+const modalManager = new ModalManager()
+  .builder('modal1', ModalComponent1)
+  .builder('modal2', ModalComponent2);
 
 export default function Example() {
   return (
     <modalManager.Provider>
       <button
-        onClick={() =>
-          modalManager.showModal('Modal1', { ModalProps: 'test1' })
-        }
+        onClick={() => modalManager.showModal(ModalComponent2, { counter: 10 })}
       >
-        add modal
+        show preregistered modal
       </button>
     </modalManager.Provider>
   );

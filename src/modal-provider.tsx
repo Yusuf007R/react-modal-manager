@@ -2,6 +2,7 @@ import React from 'react';
 import ModalManager from './modal-manager';
 
 import useStore from './state/react';
+import { ModalType } from './types';
 
 type propType<M> = {
   children: React.ReactNode;
@@ -24,13 +25,20 @@ export default function ModalProvider<M>({
 
   return (
     <>
-      {state.visibleModals.map((modalId) => {
-        const Modal = modalManager.modals[modalId].component;
-        const hide = () => modalManager.hideModal(modalId);
+      {state.visibleModals.map((modalData) => {
+        const Modal =
+          modalData.type === ModalType.PRE_REGISTERED
+            ? modalManager.modals[modalData.key].component
+            : modalManager.runtimeModals[modalData.key].component;
+
+        const hide = () => modalManager.hideModal(modalData.key);
 
         return (
-          <ModalInternalContext.Provider key={modalId} value={{ hide }}>
-            <Modal />
+          <ModalInternalContext.Provider
+            key={modalData.key as string}
+            value={{ hide }}
+          >
+            <Modal {...(modalData.props as any)} />
           </ModalInternalContext.Provider>
         );
       })}
