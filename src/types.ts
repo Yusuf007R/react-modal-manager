@@ -3,36 +3,39 @@ export enum ModalType {
   RUNTIME_MODAL,
 }
 
-type visibleModalType<M> =
-  | {
-      key: keyof modals<M>;
-      type: ModalType.PRE_REGISTERED;
-      props: M[keyof modals<M>];
-    }
-  | {
-      key: string | number;
-      type: ModalType.RUNTIME_MODAL;
-      props: { [key: string]: any };
-    };
-
-export type modalManagerStoreType<M> = {
-  visibleModals: visibleModalType<M>[];
+export type ModalAPI = {
+  isVisible: boolean;
+  hide: () => void;
+  unMount: () => void;
 };
 
-export type modalInfo<P> = {
-  component: React.FC<P>;
+export type MountedModals = {
+  key: string | number;
+  isVisible: boolean;
+  type: ModalType;
+  props: { [key: string]: any };
 };
 
-export type modals<M> = {
-  [K in keyof M]: modalInfo<M[K]>;
+export type ModalManagerStoreType = {
+  mountedModals: {
+    [key: string]: MountedModals;
+  };
 };
 
-export type runtimeModals = {
-  [key: string]: modalInfo<any>;
+export type Modals = {
+  [K: string]: ModalsData;
 };
 
-//utils types
+export type ModalsData = {
+  component: React.FC<any>;
+};
+
+export type GenericModalKey<M> = keyof M | (string & {});
 
 export type MergeObjectUnion<U> = U extends infer O
   ? { [K in keyof O]: O[K] }
   : never;
+
+export type Exact<T> = {
+  [P in keyof T]: T[P];
+};

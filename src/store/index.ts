@@ -14,9 +14,7 @@ const createStore = <T>(initialState: T): storeType<T> => {
 
   const subscribe = (listener: stateListener) => {
     listeners.add(listener);
-    return () => {
-      listeners.delete(listener);
-    };
+    return () => listeners.delete(listener);
   };
 
   const setState = (arg: setStateArg<T>) => {
@@ -24,7 +22,7 @@ const createStore = <T>(initialState: T): storeType<T> => {
     listeners.forEach((callback) => callback());
   };
 
-  const getState = () => state;
+  const getState = () => Object.freeze(state);
 
   return { setState, getState, subscribe };
 };

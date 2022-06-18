@@ -1,6 +1,7 @@
-import ModalManager from '../src';
+import { ModalManager, ModalProvider } from '../src';
 import Modal from 'react-modal';
-import { useModal } from '../src/modal-provider';
+
+import './index.css';
 
 const ModalComponent1 = ({ title }: { title: string }) => {
   const options = useModal();
@@ -14,26 +15,34 @@ const ModalComponent1 = ({ title }: { title: string }) => {
 
 const ModalComponent2 = ({ counter }: { counter: number }) => {
   const options = useModal();
+
   return (
-    <Modal ariaHideApp={false} isOpen={true}>
+    <Modal
+      onRequestClose={options.hide}
+      onAfterClose={() => options.unMount}
+      closeTimeoutMS={500}
+      ariaHideApp={false}
+      isOpen={options.isVisible}
+    >
       {counter}
       <button onClick={options.hide}>closeModal</button>
     </Modal>
   );
 };
 
-const modalManager = new ModalManager()
-  .builder('modal1', ModalComponent1)
-  .builder('modal2', ModalComponent2);
+const modalManager = new ModalManager({
+  madal1: { component: ModalComponent1 },
+  modal2: { component: ModalComponent2 },
+});
+
+export const { useModal } = modalManager;
 
 export default function Example() {
   return (
-    <modalManager.Provider>
-      <button
-        onClick={() => modalManager.showModal(ModalComponent2, { counter: 10 })}
-      >
+    <ModalProvider modalManager={modalManager}>
+      <button onClick={() => modalManager.show('modal2', { counter: 1 })}>
         show preregistered modal
       </button>
-    </modalManager.Provider>
+    </ModalProvider>
   );
 }

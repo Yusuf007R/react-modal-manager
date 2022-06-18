@@ -1,89 +1,97 @@
-import React from 'react';
-import ModalProvider from './modal-provider';
+import { ComponentPropsWithoutRef } from 'react';
+import { _useModal } from './modal-provider';
 
-import createStore from './state';
+import createStore from './store';
 import {
-  MergeObjectUnion,
-  modalManagerStoreType,
+  ModalManagerStoreType,
   ModalType,
-  modals,
-  runtimeModals,
+  Modals,
+  Exact,
+  GenericModalKey,
+  ModalAPI,
 } from './types';
+import devLog from './utils';
 
-export default class ModalManager<M> {
-  id: number = 0;
+export default class ModalManager<M extends Modals> {
+  private internalRuntimeModalId: number = 1;
 
-  private initalModalStore: modalManagerStoreType<M> = {
-    visibleModals: [],
+  private initalModalStore: ModalManagerStoreType = {
+    mountedModals: {},
   };
   readonly store = createStore(this.initalModalStore);
 
-  modals: modals<M> = {} as modals<M>;
+  modals: M;
 
-  runtimeModals: runtimeModals = {};
+  runtimeModals: Modals = {};
 
-  builder<
-    K extends string,
-    P,
-    V extends {
-      [Key in K]: P;
-    }
-  >(key: K, comp: React.FC<P>) {
-    // ? is this okay?, its not internally typesafe
-    // ? but it should be okay from the outside
-    (this.modals as any)[key] = {
-      component: comp,
-    };
-    return this as unknown as ModalManager<MergeObjectUnion<M & V>>;
+  constructor(modals: Exact<M>) {
+    this.modals = modals;
   }
 
-  showModal<P extends keyof modals<M> | React.FC<any>>(
-    modal: P,
-    props: P extends React.FC<infer Props>
+  show<Modal extends GenericModalKey<M> | React.FC<any>>(
+    modal: Modal,
+    props: Modal extends React.FC<infer Props>
       ? Props
-      : P extends keyof modals<M>
-      ? M[P]
-      : never
+      : Modal extends keyof M
+      ? ComponentPropsWithoutRef<M[Modal]['component']>
+      : any
   ) {
-    if (typeof modal === 'string') {
-      this.store.setState((state) => {
-        state.visibleModals.push({
-          key: modal as keyof modals<M>,
-          type: ModalType.PRE_REGISTERED,
-          props,
-        });
-        return state;
-      });
+    let key: string | number = modal as string;
+    if (typeof modal === 'function') {
+      const id = this.internalRuntimeModalId++;
+      this.runtimeModals[id] = { component: modal as React.FC<any> };
+      key = id;
+    }
+
+    const isRuntimeModal = this.runtimeModals[key] !== undefined;
+
+    if (!isRuntimeModal && this.modals[key] === undefined) {
+      devLog(`Modal key: ${modal as string} not found`);
       return;
     }
-    const id = this.id++;
-    this.runtimeModals[id] = { component: modal as React.FC<any> };
+
     this.store.setState((state) => {
-      state.visibleModals.push({
-        key: id,
-        type: ModalType.RUNTIME_MODAL,
+      state.mountedModals[key] = {
+        key: key,
+        type: isRuntimeModal
+          ? ModalType.RUNTIME_MODAL
+          : ModalType.PRE_REGISTERED,
         props,
-      });
+        isVisible: true,
+      };
       return state;
     });
   }
 
-  hideModal = (key: keyof modals<M> | string | number) => {
-    let isRuntimeModal: boolean = false;
+  hide = (key: GenericModalKey<M>) => {
+    const _key = key as string;
+    if (this.store.getState().mountedModals[_key] === undefined) {
+      devLog(`Modal key: ${_key} not found`);
+      return;
+    }
     this.store.setState((state) => {
-      state.visibleModals = state.visibleModals.filter((modal) => {
-        if (modal.key !== key) return true;
-        isRuntimeModal = modal.type === ModalType.RUNTIME_MODAL;
-        return false;
-      });
+      state.mountedModals[_key].isVisible = false;
       return state;
     });
+  };
 
+  unMount = (key: GenericModalKey<M>) => {
+    let isRuntimeModal = false;
+    const _key = key as string;
+    if (this.store.getState().mountedModals[_key] === undefined) {
+      devLog(`Modal key: ${_key} not found`);
+      return;
+    }
+    this.store.setState((state) => {
+      state.mountedModals[_key].isVisible = false;
+      isRuntimeModal =
+        state.mountedModals[_key].type === ModalType.RUNTIME_MODAL;
+      return state;
+    });
     if (isRuntimeModal) {
-      delete this.runtimeModals[key as string];
+      delete this.runtimeModals[key as string | number];
     }
   };
 
-  Provider = ({ children }: { children: React.ReactNode }) =>
-    ModalProvider({ children, modalManager: this });
+  useModal = _useModal as (key?: GenericModalKey<M>) => ModalAPI;
 }
