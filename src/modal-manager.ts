@@ -1,5 +1,5 @@
 import type { ComponentPropsWithoutRef } from 'react';
-import { _useModal } from './modal-provider';
+import { _useModal } from './react/hooks';
 
 import createStore from './store';
 import {
@@ -10,7 +10,7 @@ import {
   GenericModalKey,
   ModalAPI,
 } from './types';
-import devLog from './utils';
+import { devLog } from './utils';
 
 export default class ModalManager<M extends Modals> {
   private internalRuntimeModalId: number = 1;
@@ -36,7 +36,8 @@ export default class ModalManager<M extends Modals> {
    * Show a modal.
    * @param {string | React.FC<any>} modal this can be either a string or a component.
    * If it is a component It will be first registered to the manager and then shown.
-   * @return {Promise<any>} A promise that can be resolved from inside the modal component with the resolve function from the {@link ModalManager.useModal useModal} hook.
+   * @returns {Promise<any>} promise that can be resolved from inside the modal component with the {@link ModalAPI.resolve resolve} function from the {@link ModalManager.useModal useModal} hook.
+   *
    * If the promise is not resolved before unmounting the modal, the promise will be rejected.
    */
   show<Modal extends GenericModalKey<M> | React.FC<any>>(
@@ -44,13 +45,13 @@ export default class ModalManager<M extends Modals> {
     props: Modal extends React.FC<infer Props>
       ? Props
       : Modal extends keyof M
-      ? ComponentPropsWithoutRef<M[Modal]['component']>
+      ? ComponentPropsWithoutRef<M[Modal]>
       : any
   ): Promise<any> {
     let key = modal as string;
     if (typeof modal === 'function') {
       const id = `__RUNTIME-MODAL-${this.internalRuntimeModalId++}__`;
-      this.runtimeModals[id] = { component: modal as React.FC<any> };
+      this.runtimeModals[id] = modal as React.FC<any>;
       key = id;
     }
 
@@ -111,8 +112,10 @@ export default class ModalManager<M extends Modals> {
   /**
    * Unmount a modal.
    * This will unmount the modal if its a runtime modal. it will also completely remove the   modal from the manager. Pre-registered can be mounted again. By calling "show" method.
-   * @param {string} key Thet key of the modal to unMount.
+   *
    * If the modal promise is not resolved before unmounting the modal, the promise will be rejected.
+   * @param {string} key Thet key of the modal to unMount.
+   *
    */
   unMount = (key: GenericModalKey<M>) => {
     let isRuntimeModal = false;
@@ -136,5 +139,12 @@ export default class ModalManager<M extends Modals> {
     }
   };
 
+  /**
+   * Use this hook to access the {@link ModalAPI ModalAPI}.
+   * @param {string} key Thet key of the modal to use. If you are inside a modal, you do not need to pass the key. The key will be automatically passed
+   *
+   * But if you are outside of a modal, you need to pass the key.
+   * @returns {ModalAPI} ModalAPI object.
+   */
   useModal = _useModal as (key?: GenericModalKey<M>) => ModalAPI;
 }

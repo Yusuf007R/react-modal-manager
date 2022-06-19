@@ -55,11 +55,7 @@ export type ModalManagerStoreType = {
 };
 
 export type Modals = {
-  [K: string]: ModalsData;
-};
-
-export type ModalsData = {
-  component: React.FC<any>;
+  [K: string]: React.FC<any>;
 };
 
 export type GenericModalKey<M> = keyof M | (string & {});

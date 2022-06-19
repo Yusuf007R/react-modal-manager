@@ -38,8 +38,8 @@ const ModalComponent2 = ({ counter }: { counter: number }) => {
 };
 
 const modalManager = new ModalManager({
-  madal1: { component: ModalComponent1 },
-  modal2: { component: ModalComponent2 },
+  'confirmation-modal': ModalComponent1,
+  modal2: ModalComponent2,
 });
 
 export const { useModal } = modalManager;

@@ -1,46 +1,14 @@
-import React, {
-  ReactNode,
-  ComponentType,
-  createContext,
-  memo,
-  useContext,
-  useMemo,
-} from 'react';
+import React, { ReactNode, ComponentType, createContext, memo } from 'react';
+import useStore from './hooks';
 
-import ModalManager from './modal-manager';
+import ModalManager from '../modal-manager';
 
-import useStore from './store/react';
-
-import { GenericModalKey, ModalAPI, Modals, ModalType } from './types';
-
-import devLog from './utils';
+import { Modals, ModalType } from '../types';
 
 export const ModalInternalContext = createContext<string | number | null>(null);
-const ModalManagerContext = createContext<ModalManager<any> | null>(null);
-
-export const _useModal = (key?: GenericModalKey<any>): ModalAPI => {
-  const modalKey = useContext(ModalInternalContext);
-  const manager = useContext(ModalManagerContext) as ModalManager<any>;
-  const _key = (key || modalKey || '') as string;
-  const [state] = useStore(manager.store);
-  const {
-    isVisible,
-    promise: { reject, resolve },
-  } = state.mountedModals[_key];
-
-  return useMemo(() => {
-    if (!_key || isVisible === undefined) devLog('Modal key not found');
-    const hide = () => manager?.hide(_key);
-    const unMount = () => manager?.unMount(_key);
-    return {
-      isVisible: isVisible ?? false,
-      hide,
-      reject,
-      resolve,
-      unMount,
-    };
-  }, [_key, isVisible, reject, resolve, manager]);
-};
+export const ModalManagerContext = createContext<ModalManager<any> | null>(
+  null
+);
 
 type ModalProviderType<M extends Modals> = {
   children: ReactNode;
@@ -74,8 +42,8 @@ function ModalRenderer<M extends Modals>({
       {Object.values(state.mountedModals).map((modalData) => {
         const ModalComp =
           modalData.type === ModalType.PRE_REGISTERED
-            ? modalManager.modals[modalData.key]?.component
-            : modalManager.runtimeModals[modalData.key]?.component;
+            ? modalManager.modals[modalData.key]
+            : modalManager.runtimeModals[modalData.key];
 
         if (!Modal) return null;
         const key = modalData.key as string;
