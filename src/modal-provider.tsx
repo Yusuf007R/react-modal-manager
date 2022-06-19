@@ -1,8 +1,13 @@
-import React, { createContext, Fragment, useContext, useMemo } from 'react';
+import { createContext, memo, useContext, useMemo } from 'react';
+
 import ModalManager from './modal-manager';
 
+import type { ReactNode, ComponentType } from 'react';
+
 import useStore from './store/react';
+
 import { GenericModalKey, ModalAPI, Modals, ModalType } from './types';
+
 import devLog from './utils';
 
 export const ModalInternalContext = createContext<string | number | null>(null);
@@ -28,7 +33,7 @@ export const _useModal = (key?: GenericModalKey<any>): ModalAPI => {
 };
 
 type ModalProviderType<M extends Modals> = {
-  children: React.ReactNode;
+  children: ReactNode;
   modalManager: ModalManager<M>;
 };
 
@@ -55,7 +60,7 @@ function ModalRenderer<M extends Modals>({
   const [state] = useStore(modalManager.store);
 
   return (
-    <Fragment>
+    <>
       {Object.values(state.mountedModals).map((modalData) => {
         const ModalComp =
           modalData.type === ModalType.PRE_REGISTERED
@@ -73,17 +78,17 @@ function ModalRenderer<M extends Modals>({
           />
         );
       })}
-    </Fragment>
+    </>
   );
 }
 
 type Modaltype = {
   modalProps: any;
-  ModalComp: React.ComponentType<any>;
+  ModalComp: ComponentType<any>;
   modalKey: string;
 };
 
-const Modal = React.memo(function Modal({
+const Modal = memo(function Modal({
   modalKey,
   modalProps,
   ModalComp,
