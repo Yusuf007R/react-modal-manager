@@ -1,8 +1,13 @@
-import { createContext, memo, useContext, useMemo } from 'react';
+import React, {
+  ReactNode,
+  ComponentType,
+  createContext,
+  memo,
+  useContext,
+  useMemo,
+} from 'react';
 
 import ModalManager from './modal-manager';
-
-import type { ReactNode, ComponentType } from 'react';
 
 import useStore from './store/react';
 
@@ -18,7 +23,10 @@ export const _useModal = (key?: GenericModalKey<any>): ModalAPI => {
   const manager = useContext(ModalManagerContext) as ModalManager<any>;
   const _key = (key || modalKey || '') as string;
   const [state] = useStore(manager.store);
-  const isVisible = state.mountedModals[_key]?.isVisible;
+  const {
+    isVisible,
+    promise: { reject, resolve },
+  } = state.mountedModals[_key];
 
   return useMemo(() => {
     if (!_key || isVisible === undefined) devLog('Modal key not found');
@@ -27,9 +35,11 @@ export const _useModal = (key?: GenericModalKey<any>): ModalAPI => {
     return {
       isVisible: isVisible ?? false,
       hide,
+      reject,
+      resolve,
       unMount,
     };
-  }, [isVisible, manager, _key]);
+  }, [_key, isVisible, reject, resolve, manager]);
 };
 
 type ModalProviderType<M extends Modals> = {

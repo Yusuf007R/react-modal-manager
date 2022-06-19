@@ -17,14 +17,33 @@ export type ModalAPI = {
   hide: () => void;
   /**
    * Method to unmount the modal.
-   * @see {@link ModalManager.unMount unMount} for more info.
+   * @see {@link ModalManager.unMount ModalManager unMount} for more info.
    */
   unMount: () => void;
+
+  /**
+   * Resolve the modal promise.
+   * The value passed to this method will be passed to the ModalManager {@link ModalManager.show ModalManager show} method promise.
+   * @param {any} value.
+   */
+  resolve: (value: any) => void;
+
+  /**
+   * Reject the modal promise.
+   * The value passed to this method will be passed to the ModalManager {@link ModalManager.show ModalManager show} method promise.
+   * @param {any} value.
+   */
+  reject: (reason: any) => void;
 };
 
 export type MountedModals = {
   key: string | number;
   isVisible: boolean;
+  promise: {
+    resolve: (value: any) => void;
+    reject: (reason: any) => void;
+    value: Promise<any>;
+  };
   type: ModalType;
   props: { [key: string]: any };
 };

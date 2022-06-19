@@ -19,13 +19,20 @@ const ModalComponent2 = ({ counter }: { counter: number }) => {
   return (
     <Modal
       onRequestClose={options.hide}
-      onAfterClose={() => options.unMount}
+      onAfterClose={options.unMount}
       closeTimeoutMS={500}
       ariaHideApp={false}
       isOpen={options.isVisible}
     >
       {counter}
-      <button onClick={options.hide}>closeModal</button>
+      <button
+        onClick={() => {
+          options.hide();
+          options.resolve('clicked');
+        }}
+      >
+        closeModal
+      </button>
     </Modal>
   );
 };
@@ -35,15 +42,17 @@ const modalManager = new ModalManager({
   modal2: { component: ModalComponent2 },
 });
 
-modalManager.hide('');
-
 export const { useModal } = modalManager;
 
 export default function Example() {
   return (
     <ModalProvider modalManager={modalManager}>
-      <button onClick={() => modalManager.show('modal2', { counter: 1 })}>
-        show preregistered modal
+      <button
+        onClick={async () => {
+          console.log(await modalManager.show('modal2', { counter: 1 }));
+        }}
+      >
+        Show modal
       </button>
     </ModalProvider>
   );

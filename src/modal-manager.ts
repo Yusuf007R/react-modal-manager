@@ -33,11 +33,11 @@ export default class ModalManager<M extends Modals> {
   }
 
   /**
-   *
    * Show a modal.
    * @param {string | React.FC<any>} modal this can be either a string or a component.
    * If it is a component It will be first registered to the manager and then shown.
-   *
+   * @return {Promise<any>} A promise that can be resolved from inside the modal component with the resolve function from the {@link ModalManager.useModal useModal} hook.
+   * If the promise is not resolved before unmounting the modal, the promise will be rejected.
    */
   show<Modal extends GenericModalKey<M> | React.FC<any>>(
     modal: Modal,
@@ -46,10 +46,10 @@ export default class ModalManager<M extends Modals> {
       : Modal extends keyof M
       ? ComponentPropsWithoutRef<M[Modal]['component']>
       : any
-  ) {
-    let key: string | number = modal as string;
+  ): Promise<any> {
+    let key = modal as string;
     if (typeof modal === 'function') {
-      const id = this.internalRuntimeModalId++;
+      const id = `__RUNTIME-MODAL-${this.internalRuntimeModalId++}__`;
       this.runtimeModals[id] = { component: modal as React.FC<any> };
       key = id;
     }
@@ -57,9 +57,17 @@ export default class ModalManager<M extends Modals> {
     const isRuntimeModal = this.runtimeModals[key] !== undefined;
 
     if (!isRuntimeModal && this.modals[key] === undefined) {
-      devLog(`Modal key: ${modal as string} not found`);
-      return;
+      const msg = `Modal key: ${modal as string} not found`;
+      devLog(msg);
+      return Promise.reject(msg) as Promise<any>;
     }
+
+    let reject: (value: any) => void;
+    let resolve: (value: any) => void;
+    const promise = new Promise<any>((res, rej) => {
+      reject = rej;
+      resolve = res;
+    });
 
     this.store.setState((state) => {
       state.mountedModals[key] = {
@@ -69,9 +77,16 @@ export default class ModalManager<M extends Modals> {
           : ModalType.PRE_REGISTERED,
         props,
         isVisible: true,
+        promise: {
+          resolve,
+          reject,
+          value: promise,
+        },
       };
       return state;
     });
+
+    return promise;
   }
 
   /**
@@ -79,9 +94,7 @@ export default class ModalManager<M extends Modals> {
    * This will only hide the modal (set isVisible to false).
    * it Will not unmount the modal.
    * @see {@link ModalManager.unMount unMount} for unmounting the modal.
-  
    * @param {string} key Thet key of the modal to hide.
-   *
    */
   hide = (key: GenericModalKey<M>) => {
     const _key = key as string;
@@ -99,6 +112,7 @@ export default class ModalManager<M extends Modals> {
    * Unmount a modal.
    * This will unmount the modal if its a runtime modal. it will also completely remove the   modal from the manager. Pre-registered can be mounted again. By calling "show" method.
    * @param {string} key Thet key of the modal to unMount.
+   * If the modal promise is not resolved before unmounting the modal, the promise will be rejected.
    */
   unMount = (key: GenericModalKey<M>) => {
     let isRuntimeModal = false;
@@ -107,10 +121,14 @@ export default class ModalManager<M extends Modals> {
       devLog(`Modal key: ${_key} not found`);
       return;
     }
+
     this.store.setState((state) => {
-      state.mountedModals[_key].isVisible = false;
-      isRuntimeModal =
-        state.mountedModals[_key].type === ModalType.RUNTIME_MODAL;
+      const mountedModal = state.mountedModals[_key];
+      isRuntimeModal = mountedModal.type === ModalType.RUNTIME_MODAL;
+      //* if the promise is not resolved yet, it will be rejected, if not it will just be ignored.
+      mountedModal.promise.reject('Modal Unmounted before promise resolved');
+
+      delete state.mountedModals[_key];
       return state;
     });
     if (isRuntimeModal) {
