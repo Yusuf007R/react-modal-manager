@@ -35,6 +35,8 @@ const modalManager = new ModalManager({
   modal2: { component: ModalComponent2 },
 });
 
+modalManager.hide('');
+
 export const { useModal } = modalManager;
 
 export default function Example() {

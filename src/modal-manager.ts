@@ -24,10 +24,21 @@ export default class ModalManager<M extends Modals> {
 
   runtimeModals: Modals = {};
 
+  /**
+   * ModalManager
+   * @param {Modals} modals  Initial modals to be registered
+   */
   constructor(modals: Exact<M>) {
     this.modals = modals;
   }
 
+  /**
+   *
+   * Show a modal.
+   * @param {string | React.FC<any>} modal this can be either a string or a component.
+   * If it is a component It will be first registered to the manager and then shown.
+   *
+   */
   show<Modal extends GenericModalKey<M> | React.FC<any>>(
     modal: Modal,
     props: Modal extends React.FC<infer Props>
@@ -63,6 +74,15 @@ export default class ModalManager<M extends Modals> {
     });
   }
 
+  /**
+   * Hide a modal.
+   * This will only hide the modal (set isVisible to false).
+   * it Will not unmount the modal.
+   * @see {@link ModalManager.unMount unMount} for unmounting the modal.
+  
+   * @param {string} key Thet key of the modal to hide.
+   *
+   */
   hide = (key: GenericModalKey<M>) => {
     const _key = key as string;
     if (this.store.getState().mountedModals[_key] === undefined) {
@@ -75,6 +95,11 @@ export default class ModalManager<M extends Modals> {
     });
   };
 
+  /**
+   * Unmount a modal.
+   * This will unmount the modal if its a runtime modal. it will also completely remove the   modal from the manager. Pre-registered can be mounted again. By calling "show" method.
+   * @param {string} key Thet key of the modal to unMount.
+   */
   unMount = (key: GenericModalKey<M>) => {
     let isRuntimeModal = false;
     const _key = key as string;

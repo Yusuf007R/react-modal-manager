@@ -19,7 +19,6 @@ export const _useModal = (key?: GenericModalKey<any>): ModalAPI => {
     if (!_key || isVisible === undefined) devLog('Modal key not found');
     const hide = () => manager?.hide(_key);
     const unMount = () => manager?.unMount(_key);
-
     return {
       isVisible: isVisible ?? false,
       hide,
