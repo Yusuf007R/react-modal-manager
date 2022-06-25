@@ -1,7 +1,9 @@
-# React modal manager
+# React Modal Manager
 
 [react-modal-manager](https://github.com/Yusuf007R/react-modal-maneger) is a tiny 2kb library that helps you manage your react modals from everywhere in your app. Yes even outside components.🔥 it also allow you to get values from inside the modal with a promise system.🥵
 It all super simple and easy to use.
+
+> Keep in mind that this a Modal Manager. Not a Modal UI component or something like that. You have to provide your own modal UI component.
 
 # Getting started
 
@@ -38,6 +40,7 @@ const result = modalManager.show(ConfirmationModal, {title:"are you sure?"});
 ```
 
 From inside the modal you can access the `ModalAPI`
+> for this examples we will use [react-modal](https://github.com/reactjs/react-modal).
 ```tsx
 import Modal from 'react-modal';
 
@@ -168,4 +171,4 @@ const ModalWithTransition = ({ title }: { title: string }) => {
 
 
 # License
-MIT
+[MIT](https://github.com/Yusuf007R/react-modal-maneger/blob/main/LICENSE)
