@@ -1,10 +1,7 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import type ModalManager from './modal-manager';
 
-export enum ModalType {
-  PRE_REGISTERED,
-  RUNTIME_MODAL,
-}
+export type ModalType = 'pre-register' | 'runtime';
 
 export type ModalAPI = {
   /**
@@ -13,18 +10,38 @@ export type ModalAPI = {
   isVisible: boolean;
   /**
    * Function to hide the modal.
+   * @see {@link ModalManager.hide hide} for hiding the modal.
    */
   hide: () => void;
   /**
    * Method to unmount the modal.
-   * @see {@link ModalManager.unMount unMount} for more info.
+   * @see {@link ModalManager.unMount ModalManager unMount} for more info.
    */
   unMount: () => void;
+
+  /**
+   * Resolve the modal promise.
+   * The value passed to this method will be passed to the ModalManager {@link ModalManager.show ModalManager show} method promise.
+   * @param {any} value.
+   */
+  resolve: (value: any) => void;
+
+  /**
+   * Reject the modal promise.
+   * The value passed to this method will be passed to the ModalManager {@link ModalManager.show ModalManager show} method promise.
+   * @param {any} value.
+   */
+  reject: (reason: any) => void;
 };
 
 export type MountedModals = {
   key: string | number;
   isVisible: boolean;
+  promise: {
+    resolve: (value: any) => void;
+    reject: (reason: any) => void;
+    value: Promise<any>;
+  };
   type: ModalType;
   props: { [key: string]: any };
 };
@@ -36,11 +53,7 @@ export type ModalManagerStoreType = {
 };
 
 export type Modals = {
-  [K: string]: ModalsData;
-};
-
-export type ModalsData = {
-  component: React.FC<any>;
+  [K: string]: React.FC<any>;
 };
 
 export type GenericModalKey<M> = keyof M | (string & {});

@@ -1,160 +1,174 @@
-# DTS React User Guide
+# React Modal Manager
 
-Congrats! You just saved yourself hours of work by bootstrapping this project with DTS. Let’s get you oriented with what’s here and how to use it.
+[react-modal-manager](https://github.com/Yusuf007R/react-modal-maneger) is a tiny 2kb library that helps you manage your react modals from everywhere in your app. Yes even outside components.🔥 it also allow you to get values from inside the modal with a promise system.🥵
+It all super simple and easy to use.
 
-> This DTS setup is meant for developing React component libraries (not apps!) that can be published to NPM. If you’re looking to build a React-based app, you should use `create-react-app`, `razzle`, `nextjs`, `gatsby`, or `react-static`.
+> Keep in mind that this a Modal Manager. Not a Modal UI component or something like that. You have to provide your own modal UI component.
 
-> If you’re new to TypeScript and React, checkout [this handy cheatsheet](https://github.com/sw-yx/react-typescript-cheatsheet/)
+# Getting started
 
-## Commands
 
-DTS scaffolds your new library inside `/src`, and also sets up a [Vite-based](https://vitejs.dev) playground for it inside `/example`.
+## Install
 
-The recommended workflow is to run DTS in one terminal:
-
-```bash
-npm start # or yarn start
-```
-
-This builds to `/dist` and runs the project in watch mode so any edits you save inside `src` causes a rebuild to `/dist`.
-
-Then run the example inside another:
 
 ```bash
-cd example
-npm i # or yarn to install dependencies
-npm start # or yarn start
+yarn add @yusuf007r/react-modal-manager # or npm install @yusuf007r/react-modal-manager
 ```
 
-The default example imports and live reloads whatever is in `/dist`, so if you are seeing an out of date component, make sure DTS is running in watch mode like we recommend above. 
+## Usage
+You first have to import and initialize the modal manager.
 
-To do a one-off build, use `npm run build` or `yarn build`.
+```tsx
+import { ModalManager, ModalProvider } from '@yusuf007r/react-modal-manager';
 
-To run tests, use `npm test` or `yarn test`.
+const modalManager = new ModalManager();
 
-## Configuration
-
-Code quality is set up for you with `prettier`, `husky`, and `lint-staged`. Adjust the respective fields in `package.json` accordingly.
-
-### Jest
-
-Jest tests are set up to run with `npm test` or `yarn test`.
-
-### Bundle analysis
-
-Calculates the real cost of your library using [size-limit](https://github.com/ai/size-limit) with `npm run size` and visulize it with `npm run analyze`.
-
-#### Setup Files
-
-This is the folder structure we set up for you:
-
-```txt
-/example
-  index.html
-  index.tsx       # test your component here in a demo app
-  package.json
-  tsconfig.json
-/src
-  index.tsx       # EDIT THIS
-/test
-  index.test.tsx  # EDIT THIS
-.gitignore
-package.json
-README.md         # EDIT THIS
-tsconfig.json
-```
-
-#### React Testing Library
-
-We do not set up `react-testing-library` for you yet, we welcome contributions and documentation on this.
-
-### Rollup
-
-DTS uses [Rollup](https://rollupjs.org) as a bundler and generates multiple rollup configs for various module formats and build settings. See [Optimizations](#optimizations) for details.
-
-### TypeScript
-
-`tsconfig.json` is set up to interpret `dom` and `esnext` types, as well as `react` for `jsx`. Adjust according to your needs.
-
-## Continuous Integration
-
-### GitHub Actions
-
-Two actions are added by default:
-
-- `main` which installs deps w/ cache, lints, tests, and builds on all pushes against a Node and OS matrix
-- `size` which comments cost comparison of your library on every pull request using [`size-limit`](https://github.com/ai/size-limit)
-
-## Optimizations
-
-Please see the main `dts` [optimizations docs](https://github.com/weiran-zsd/dts-cli#optimizations). In particular, know that you can take advantage of development-only optimizations:
-
-```js
-// ./types/index.d.ts
-declare var __DEV__: boolean;
-
-// inside your code...
-if (__DEV__) {
-  console.log('foo');
+const App = () => {
+  return (
+    <ModalProvider modalManager={modalManager}>
+     //...
+    </ModalProvider>
+  )
 }
 ```
 
-You can also choose to install and use [invariant](https://github.com/weiran-zsd/dts-cli#invariant) and [warning](https://github.com/weiran-zsd/dts-cli#warning) functions.
 
-## Module Formats
+Now you can just pass a component and it will be rendered. You can do it in any place in your app. Even outside components
 
-CJS, ESModules, and UMD module formats are supported.
-
-The appropriate paths are configured in `package.json` and `dist/index.js` accordingly. Please report if any issues are found.
-
-## Deploying the Example Playground
-
-The Playground is just a simple [Vite](https://vitejs.dev) app, you can deploy it anywhere you would normally deploy that. Here are some guidelines for **manually** deploying with the Netlify CLI (`npm i -g netlify-cli`):
-
-```bash
-cd example # if not already in the example folder
-npm run build # builds to dist
-netlify deploy # deploy the dist folder
+```tsx
+const result = modalManager.show(ConfirmationModal, {title:"are you sure?"});
 ```
 
-Alternatively, if you already have a git repo connected, you can set up continuous deployment with Netlify:
+From inside the modal you can access the `ModalAPI`
+> for this examples we will use [react-modal](https://github.com/reactjs/react-modal).
+```tsx
+import Modal from 'react-modal';
 
-```bash
-netlify init
-# build command: yarn build && cd example && yarn && yarn build
-# directory to deploy: example/dist
-# pick yes for netlify.toml
+const ConfirmationModal = ({ title }: { title: string }) => {
+  const options = useModal();
+  const resolve = (value: boolean) => {
+    options.hide();
+    options.resolve(value);
+  };
+  return (
+    <Modal
+      onRequestClose={options.hide}
+      isOpen={options.isVisible}
+    >
+      {title}
+      <button onClick={() => resolve(true)}>Confirm</button>
+      <button onClick={() => resolve(false)}>Reject</button>
+    </Modal>
+  );
+}
+```
+## Registering Modals
+You can also register modals at the moment of initialization and use them by key later. This is actually the reason this library was created. I wanted to be able to register modals that I know I will use a lot.
+
+```tsx
+const modalManager = new ModalManager({
+  'confirmation-modal': ConfirmationModal,
+});
+
+// the key and the props will be autocompleted by typescript
+const result = await modalManager.show('confirmation-modal', {
+  title: 'Are you sure?',
+});
+```
+## ModalAPI
+is a simple object that has the following properties:
+
+```tsx
+const Modal = () => {
+  const {
+    isVisible, // a boolean that indicates if the modal is visible.
+    hide, // a function that hides the modal.
+    unMount, // a function that unmounts the modal.
+    resolve, // a function that resolves the promise with a given value.
+    reject, // a function that rejects the promise with a given value.
+  } = useModal();
+  
+  return (
+  //...
+  );
+}
 ```
 
-## Named Exports
+## Modal Lifecycle
 
-Per Palmer Group guidelines, [always use named exports.](https://github.com/palmerhq/typescript#exports) Code split inside your React app instead of your React library.
+### Showing
+When you register a modal they will not even be mounted until you call `show` on them. In that moment they will be mounted and also the `isVisible` property will be set to `true`
 
-## Including Styles
+### hidding
+When you call `hide` the modal will be hidden and the `isVisible` property will be set to `false`, but it will not be unmounted.
 
-There are many ways to ship styles, including with CSS-in-JS. DTS has no opinion on this, configure how you like.
 
-For vanilla CSS, you can include it at the root directory and add it to the `files` section in your `package.json`, so that it can be imported separately by your users and run through their bundler's loader.
+### unMounting
+If you want to completely unMount a modal you can call `unMount` function. Keep in mind that this will make the modal to instantly disappear so if you have a exit animation it will not be shown.
 
-## Publishing to NPM
 
-We recommend using [np](https://github.com/sindresorhus/np).
 
-## Usage with Lerna
+## Enter/Exit Animations
 
-When creating a new package with DTS within a project set up with Lerna, you might encounter a `Cannot resolve dependency` error when trying to run the `example` project. To fix that you will need to make changes to the `package.json` file _inside the `example` directory_.
+As said before If you unMount you modal without hiding it first it will not show the exit animation.
+Similar concept applies to showing a modal and the enter animation.
+Keep that if you modal does not have animation any of this applies to you.
 
-The problem is that due to the nature of how dependencies are installed in Lerna projects, the aliases in the example project's `package.json` might not point to the right place, as those dependencies might have been installed in the root of your Lerna project.
 
-Change the `alias` to point to where those packages are actually installed. This depends on the directory structure of your Lerna project, so the actual path might be different from the diff below.
+### Exit Animation
+first when closing the you have to call the hide function. 
+this will hide the modal and show the exit animation.
+then in the afterClose event you can safely unmount the modal. 
+```tsx
+import Modal from 'react-modal';
 
-```diff
-   "alias": {
--    "react": "../node_modules/react",
--    "react-dom": "../node_modules/react-dom"
-+    "react": "../../../node_modules/react",
-+    "react-dom": "../../../node_modules/react-dom"
-   },
+// this example is using the react-modal library. But usually its very similar with any other library.
+const ModalWithTransition = ({ title }: { title: string }) => {
+  const options = useModal();
+  return (
+    <Modal
+      onRequestClose={options.hide}
+      onAfterClose={options.unMount}
+      closeTimeoutMS={500}
+      isOpen={options.isVisible}
+    >
+      {title}
+    </Modal>
+  );
+}
+```
+### Enter Animation
+
+For the enter animation to be shown you have to pass the `isVisible` value to the modal. You should not conditionally render the modal. because if you do it will not show the enter animation.
+
+### Bad
+```tsx
+const ModalWithTransition = ({ title }: { title: string }) => {
+  const options = useModal();
+  return (
+   {options.isVisible ?? (
+     <Modal>
+      {title}
+    </Modal>
+   )}
+  );
+}
+```
+### Good
+
+```tsx
+const ModalWithTransition = ({ title }: { title: string }) => {
+  const options = useModal();
+  return (
+    <Modal isOpen={options.isVisible}>
+      {title}
+    </Modal>
+  );
+}
 ```
 
-An alternative to fixing this problem would be to remove aliases altogether and define the dependencies referenced as aliases as dev dependencies instead. [However, that might cause other problems.](https://github.com/formium/tsdx/issues/64)
+
+
+
+# License
+[MIT](https://github.com/Yusuf007R/react-modal-maneger/blob/main/LICENSE)

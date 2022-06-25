@@ -1,6 +1,6 @@
 export type stateListener = () => void;
 
-type setStateArg<T> = (state: T) => T;
+export type setStateArg<T> = (state: T) => T;
 
 export type storeType<T> = {
   setState: (arg: setStateArg<T>) => void;
