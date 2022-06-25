@@ -30,21 +30,18 @@ export const _useModal = (key?: GenericModalKey<any>): ModalAPI => {
   const manager = useContext(ModalManagerContext) as ModalManager<any>;
   const _key = (key || modalKey || '') as string;
   const [state] = useStore(manager.store);
-  const {
-    isVisible,
-    promise: { reject, resolve },
-  } = state.mountedModals[_key];
+  const modal = state.mountedModals[_key]!;
+  const isVisible = modal?.isVisible;
 
   return useMemo(() => {
     if (!_key || isVisible === undefined) devLog('Modal key not found');
-    const hide = () => manager?.hide(_key);
-    const unMount = () => manager?.unMount(_key);
+
     return {
       isVisible: isVisible ?? false,
-      hide,
-      reject,
-      resolve,
-      unMount,
+      hide: () => manager?.hide(_key),
+      reject: modal.promise.reject,
+      resolve: modal.promise.resolve,
+      unMount: () => manager?.unMount(_key),
     };
-  }, [_key, isVisible, reject, resolve, manager]);
+  }, [_key, isVisible, manager, modal.promise.reject, modal.promise.resolve]);
 };

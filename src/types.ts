@@ -1,10 +1,7 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import type ModalManager from './modal-manager';
 
-export enum ModalType {
-  PRE_REGISTERED,
-  RUNTIME_MODAL,
-}
+export type ModalType = 'pre-register' | 'runtime';
 
 export type ModalAPI = {
   /**
@@ -13,6 +10,7 @@ export type ModalAPI = {
   isVisible: boolean;
   /**
    * Function to hide the modal.
+   * @see {@link ModalManager.hide hide} for hiding the modal.
    */
   hide: () => void;
   /**

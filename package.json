@@ -42,11 +42,11 @@
   "size-limit": [
     {
       "path": "dist/react-modal-manager.cjs.production.min.js",
-      "limit": "5 KB"
+      "limit": "3 KB"
     },
     {
       "path": "dist/react-modal-manager.esm.js",
-      "limit": "5 KB"
+      "limit": "3 KB"
     }
   ],
   "devDependencies": {

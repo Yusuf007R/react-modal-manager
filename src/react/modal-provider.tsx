@@ -1,9 +1,9 @@
-import React, { ReactNode, ComponentType, createContext, memo } from 'react';
+import { ReactNode, ComponentType, createContext, memo } from 'react';
 import useStore from './hooks';
 
 import ModalManager from '../modal-manager';
 
-import { Modals, ModalType } from '../types';
+import { Modals } from '../types';
 
 export const ModalInternalContext = createContext<string | number | null>(null);
 export const ModalManagerContext = createContext<ModalManager<any> | null>(
@@ -41,11 +41,11 @@ function ModalRenderer<M extends Modals>({
     <>
       {Object.values(state.mountedModals).map((modalData) => {
         const ModalComp =
-          modalData.type === ModalType.PRE_REGISTERED
+          modalData.type === 'pre-register'
             ? modalManager.modals[modalData.key]
             : modalManager.runtimeModals[modalData.key];
 
-        if (!Modal) return null;
+        if (!ModalComp) return null;
         const key = modalData.key as string;
         return (
           <Modal
