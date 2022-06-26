@@ -41,7 +41,7 @@ function ModalRenderer<M extends Modals>({
     <>
       {Object.values(state.mountedModals).map((modalData) => {
         const ModalComp =
-          modalData.type === 'pre-register'
+          modalData.type === 'registered'
             ? modalManager.modals[modalData.key]
             : modalManager.runtimeModals[modalData.key];
 

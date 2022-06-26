@@ -1,7 +1,7 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import type ModalManager from './modal-manager';
 
-export type ModalType = 'pre-register' | 'runtime';
+export type ModalType = 'registered' | 'runtime';
 
 export type ModalAPI = {
   /**
@@ -34,14 +34,16 @@ export type ModalAPI = {
   reject: (reason: any) => void;
 };
 
+export type PromiseAPI = {
+  resolve: (value: any) => void;
+  reject: (reason: any) => void;
+  value: Promise<any>;
+};
+
 export type MountedModals = {
   key: string | number;
   isVisible: boolean;
-  promise: {
-    resolve: (value: any) => void;
-    reject: (reason: any) => void;
-    value: Promise<any>;
-  };
+  promise: PromiseAPI;
   type: ModalType;
   props: { [key: string]: any };
 };

@@ -8,6 +8,7 @@ import {
   Exact,
   GenericModalKey,
   ModalAPI,
+  PromiseAPI,
 } from './types';
 import { devLog } from './utils';
 
@@ -72,7 +73,7 @@ export default class ModalManager<M extends Modals> {
     this.store.setState((state) => {
       state.mountedModals[key] = {
         key: key,
-        type: isRuntimeModal ? 'runtime' : 'pre-register',
+        type: isRuntimeModal ? 'runtime' : 'registered',
         props: props ?? {},
         isVisible: true,
         promise: {
@@ -108,7 +109,7 @@ export default class ModalManager<M extends Modals> {
 
   /**
    * Unmount a modal.
-   * This will unmount the modal if its a runtime modal. it will also completely remove the   modal from the manager. Pre-registered can be mounted again. By calling "show" method.
+   * This will unmount the modal if its a runtime modal. it will also completely remove the   modal from the manager. registered can be mounted again. By calling "show" method.
    *
    * @param {string} key Thet key of the modal to unMount.
    */
@@ -130,6 +131,20 @@ export default class ModalManager<M extends Modals> {
     if (isRuntimeModal) {
       delete this.runtimeModals[key as string | number];
     }
+  };
+
+  /**
+   * Use this to access the {@link PromiseAPI PromiseAPI}
+   * @param {string} key Thet key of the modal to get the promise from. If modal does not exists or is not mounted, it will return undefined.
+   * @returns {PromiseAPI | undefined} promise API
+   */
+  getPromiseAPI = (key: GenericModalKey<M>): PromiseAPI | undefined => {
+    const modal = this.store.getState().mountedModals[key as string];
+    if (!modal) {
+      devLog(`Modal key: ${key as string} not found`);
+      return;
+    }
+    return modal.promise;
   };
 
   /**

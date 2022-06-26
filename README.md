@@ -33,7 +33,7 @@ const App = () => {
 ```
 
 
-Now you can just pass a component and it will be rendered. You can do it in any place in your app. Even outside components
+Now you can just pass a `component` and it will be rendered. You can do it in any place in your app. Even outside components
 
 ```tsx
 const result = modalManager.show(ConfirmationModal, {title:"are you sure?"});
@@ -94,23 +94,44 @@ const Modal = () => {
 }
 ```
 
-## Modal Lifecycle
+## Controlling modals
+As said before you can control your modals from everywhere in your app. All the available methods for a modals are available in the `ModalManager`.
 
-### Showing
-When you register a modal they will not even be mounted until you call `show` on them. In that moment they will be mounted and also the `isVisible` property will be set to `true`
+### Showing modals
+It receives a `component` or the key of a `registered` modal, the second argument is the props that will be passed to the modal. The type of the props will be inferred from the modal component. It returns a promise that can be resolved or rejected. Usually from inside de modal.
+```tsx
+modalManager.show('confirmation-modal', {title:"are you sure?"});
+```
+### Hiding modals
+It receives the key of the modal you want to hide. Keep in mind that if it is a `registered` modal it  will not be unmounted. it will only be hidden (the `isVisible` property will be set to `false`).
 
-### hidding
-When you call `hide` the modal will be hidden and the `isVisible` property will be set to `false`, but it will not be unmounted.
+`components` modals will be automatically unmounted.
+> This will be used from inside the modal using the `useModal` hook.
 
+```tsx
+modalManager.hide('confirmation-modal');
+```
+### unMounting modals
+it receives the key of the modal you want to unmount. 
+> This will be used from inside the modal using the `useModal` hook.
+```tsx 
+modalManager.unMount('confirmation-modal');
+```
 
-### unMounting
-If you want to completely unMount a modal you can call `unMount` function. Keep in mind that this will make the modal to instantly disappear so if you have a exit animation it will not be shown.
+### Resolving promises
+you can access the `PromiseAPI` from the `useModal` hook or from the `getPromise` method of `ModalManager`
+```tsx
+const {promise, resolve, reject } = modalManager.getPromiseAPI('confirmation-modal');
 
+//resolve the promise with a value
+resolve(true);
 
-
+//reject the promise with a value
+reject(false);
+```
 ## Enter/Exit Animations
 
-As said before If you unMount you modal without hiding it first it will not show the exit animation.
+If you unMount you modal without hiding it first it will not show the exit animation. it will just unmount, just disappear.
 Similar concept applies to showing a modal and the enter animation.
 Keep that if you modal does not have animation any of this applies to you.
 
@@ -141,12 +162,12 @@ const ModalWithTransition = ({ title }: { title: string }) => {
 
 For the enter animation to be shown you have to pass the `isVisible` value to the modal. You should not conditionally render the modal. because if you do it will not show the enter animation.
 
-### Bad
+### Bad 👿
 ```tsx
 const ModalWithTransition = ({ title }: { title: string }) => {
   const options = useModal();
   return (
-   {options.isVisible ?? (
+   {options.isVisible && (
      <Modal>
       {title}
     </Modal>
@@ -154,7 +175,7 @@ const ModalWithTransition = ({ title }: { title: string }) => {
   );
 }
 ```
-### Good
+### Good 😈
 
 ```tsx
 const ModalWithTransition = ({ title }: { title: string }) => {
